@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h2>WebSocket Notifications</h2>
+<div id="messages"></div>
+<button onclick="createPost()">Create Post</button>
+
+<script>
+    function createPost() {
+        const postData = {
+            title: "Post-3"
+        };
+
+        fetch("http://localhost:8080/posts/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(postData)
+        })
+            .then(response => response.json())
+            .then(data => console.log("Response:", data))
+            .catch(error => console.error("Error:", error));
+    }
+</script>
+
+<script>
+    const socket = new SockJS('http://localhost:8080/ws');
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function () {
+        console.log("Connected to WebSocket");
+        stompClient.subscribe('/topic/notifications', function (message) {
+            document.getElementById('messages').innerHTML += "<p>" + message.body + "</p>";  // ✅ No JSON parsing needed
+        });
+    });
+</script>
+</body>
+</html>
